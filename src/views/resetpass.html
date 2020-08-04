@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>reset password</title>
+  </head>
+  <style>
+    @import url("https://fonts.googleapis.com/css?family=Roboto");
+    body {
+      font-family: "Roboto", sans-serif;
+      color: #333333;
+    }
+    h4 {
+      color: #1c65d1;
+    }
+    small {
+      color: #dc3545;
+    }
+    #submit {
+      background-color: #1c65d1;
+      color: white;
+      width: 120px;
+      margin-left: 50px;
+    }
+  </style>
+  <body>
+    <h4>Change your password here.</h4>
+    <div id="pass-updated" style="display: none;">
+      Password updated successfull. Now you can go to our website and login.
+    </div>
+    <div id="form-div">
+      <form id="restpassform" onsubmit="onFormSubmit(e)">
+        <table>
+          <tr>
+            <td><label for="fname">New Password:</label></td>
+            <td><input type="text" id="pass" /></td>
+            <td>
+              <small id="pass-err" style="display: none;">
+                * Password must be minimum 4 charecters and atleast one
+                number.</small
+              >
+            </td>
+          </tr>
+          <tr>
+            <td><label for="lname">Re-type Password:</label></td>
+            <td><input type="text" id="cpass" /></td>
+            <td>
+              <small id="pass-not-match" style="display: none;">
+                * Password do not match.</small
+              >
+            </td>
+          </tr>
+        </table>
+      </form>
+      <input type="submit" id="submit" value="Update Pasword" />
+    </div>
+    <script>
+      document.getElementById("submit").addEventListener("click", onFormSubmit);
+
+      async function onFormSubmit(e) {
+        e.preventDefault();
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get("token");
+        let password = document.getElementById("pass").value;
+        let cpassword = document.getElementById("cpass").value;
+        let errMsg1 = document.getElementById("pass-err");
+        let errMsg2 = document.getElementById("pass-not-match");
+        let passmatch = password.match(/^(?=.*\d)[0-9a-zA-Z]{5,}$/);
+        if (!passmatch) errMsg1.style.display = "inline";
+        else if (password !== cpassword) {
+          errMsg1.style.display = "none";
+          errMsg2.style.display = "inline";
+        } else {
+          let results = await fetch(
+            "http://localhost:5050/api/users/resetpassword",
+            {
+              method: "PUT",
+              body: JSON.stringify({ password }),
+              headers: {
+                "Content-Type": "application/json",
+                "auth-token": token,
+              },
+            }
+          );
+          let data = await results.json();
+          if (data.status === 200) {
+            document.getElementById("pass-updated").style.display = "block";
+            document.getElementById("form-div").style.display = "none";
+          }
+        }
+      }
+    </script>
+  </body>
+</html>
